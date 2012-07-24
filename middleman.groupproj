@@ -1,0 +1,48 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{64771C5E-A3FC-4128-B3B3-4E1D3A947BD2}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="hsdll\wowgo.cbproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="host\MiddleManProj.cbproj">
+				<Dependencies>hsdll\wowgo.cbproj</Dependencies>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="wowgo">
+			<MSBuild Projects="hsdll\wowgo.cbproj"/>
+		</Target>
+		<Target Name="wowgo:Clean">
+			<MSBuild Targets="Clean" Projects="hsdll\wowgo.cbproj"/>
+		</Target>
+		<Target Name="wowgo:Make">
+			<MSBuild Targets="Make" Projects="hsdll\wowgo.cbproj"/>
+		</Target>
+		<Target DependsOnTargets="wowgo" Name="MiddleManProj">
+			<MSBuild Projects="host\MiddleManProj.cbproj"/>
+		</Target>
+		<Target DependsOnTargets="wowgo:Clean" Name="MiddleManProj:Clean">
+			<MSBuild Targets="Clean" Projects="host\MiddleManProj.cbproj"/>
+		</Target>
+		<Target DependsOnTargets="wowgo:Make" Name="MiddleManProj:Make">
+			<MSBuild Targets="Make" Projects="host\MiddleManProj.cbproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="wowgo;MiddleManProj"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="wowgo:Clean;MiddleManProj:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="wowgo:Make;MiddleManProj:Make"/>
+		</Target>
+		<Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+	</Project>

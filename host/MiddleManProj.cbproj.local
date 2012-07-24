@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2012/07/21 17:15:42.520.cpp,C:\Users\smallka\Documents\RAD Studio\Projects\Unit1.cpp=F:\code\eggxp\MiddleMan\MiddleMan.cpp</Transaction>
+    <Transaction>2012/07/21 17:15:42.520.h,C:\Users\smallka\Documents\RAD Studio\Projects\Unit1.h=F:\code\eggxp\MiddleMan\MiddleMan.h</Transaction>
+    <Transaction>2012/07/21 17:15:42.520.dfm,C:\Users\smallka\Documents\RAD Studio\Projects\Unit1.dfm=F:\code\eggxp\MiddleMan\MiddleMan.dfm</Transaction>
+    <Transaction>2012/07/21 17:17:39.975.cbproj,C:\Users\smallka\Documents\RAD Studio\Projects\Project1.cbproj=C:\Users\smallka\Documents\RAD Studio\Projects\M.cbproj</Transaction>
+    <Transaction>2012/07/21 17:17:50.420.cbproj,C:\Users\smallka\Documents\RAD Studio\Projects\M.cbproj=F:\code\eggxp\MiddleMan\MiddleManProj.cbproj</Transaction>
+    <Transaction>2012/07/22 00:29:05.610.cpp,F:\code\eggxp\lib\TestLib\Log4Me.cpp=</Transaction>
+    <Transaction>2012/07/22 09:21:35.162.cpp,F:\code\eggxp\MiddleMan\Unit1.cpp=F:\code\eggxp\MiddleMan\DllInjecter.cpp</Transaction>
+    <Transaction>2012/07/22 09:21:35.162.h,F:\code\eggxp\MiddleMan\Unit1.h=F:\code\eggxp\MiddleMan\DllInjecter.h</Transaction>
+    <Transaction>2012/07/22 21:25:08.379.h,F:\code\eggxp\MiddleMan\alist.h=</Transaction>
+    <Transaction>2012/07/23 23:40:43.471.cpp,C:\code\eggxp\MiddleMan\Unit1.cpp=C:\code\eggxp\MiddleMan\Proxy.cpp</Transaction>
+    <Transaction>2012/07/23 23:40:43.471.h,C:\code\eggxp\MiddleMan\Unit1.h=C:\code\eggxp\MiddleMan\Proxy.h</Transaction>
+    <Transaction>2012/07/23 23:42:14.490.cpp,C:\code\eggxp\MiddleMan\Proxy.cpp=C:\code\eggxp\MiddleMan\CommProxy.cpp</Transaction>
+    <Transaction>2012/07/23 23:42:14.490.h,C:\code\eggxp\MiddleMan\Proxy.h=C:\code\eggxp\MiddleMan\CommProxy.h</Transaction>
+    <Transaction>2012/07/24 10:07:04.180.h,E:\hook\eggxp\lib\Defines.h=</Transaction>
+    <Transaction>2012/07/24 10:07:06.963.cpp,E:\hook\eggxp\lib\StrUtil.cpp=</Transaction>
+  </Transactions>
+</BorlandProject>
