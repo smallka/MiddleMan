@@ -199,10 +199,20 @@ WINSOCK_API_LINKAGE
 	//redirect IP
 	static int index = 0;
 
-	SendConnect("tcp|%s|%d|%d", ip, port, index);
-	sockaddr_in * their_addr = (sockaddr_in *)name;
-	their_addr->sin_port = htons(gConnectPort);
+	//SendConnect("tcp|%s|%d|%d", ip, port, index);
+	SOCKET sockUDP = socket(AF_INET, SOCK_DGRAM, 0);
+	SOCKADDR_IN addrUDP;
+	addrUDP.sin_family = AF_INET;
 	AnsiString ansiIP = HOST_IP;
+	addrUDP.sin_addr.S_un.S_addr = inet_addr(ansiIP.c_str());
+	addrUDP.sin_port = htons(gConnectPort);
+	AnsiString addr = ip + "|" + String(port);
+	sendto(sockUDP, addr.c_str(), addr.Length(), 0, (SOCKADDR*)&addrUDP, sizeof(SOCKADDR));
+	closesocket(sockUDP);
+
+	sockaddr_in * their_addr = (sockaddr_in *)name;
+	their_addr->sin_port = htons(gConnectPort + 1);
+	//AnsiString ansiIP = HOST_IP;
 	their_addr->sin_addr.s_addr=inet_addr(ansiIP.c_str());
 
 	nReturn = connect(s, name, namelen);

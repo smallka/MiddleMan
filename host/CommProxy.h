@@ -12,9 +12,10 @@
 class CommProxy
 {
 private:
+	int m_ListenPort;
 	int m_DestPort;
 	String m_DestIP;
-	int m_ListenPort;
+	SOCKET m_UDPSocket;
 	SOCKET m_ListenSocket;
 	SOCKET m_ClientSocket;
 	SOCKET m_HostSocket;
@@ -25,7 +26,9 @@ public:
 	~CommProxy();
 
 	void SetDestAddress(String addr);
+	bool StartUDPPort(int udpPort);
 	bool StartListenPort(int listenPort);
+	int RecvUDPThread(SingleThread *self);
 	int ListenThread(SingleThread *self);
 	int ClientRecvThread(SingleThread *self);
 	int HostRecvThread(SingleThread *self);

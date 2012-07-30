@@ -26,8 +26,8 @@ CommProxy *GetCommProxy()
 
 CommProxy::CommProxy()
 {
-	m_DestPort = 0;
 	m_ListenPort = 0;
+	m_DestPort = 0;
 }
 
 CommProxy::~CommProxy()
@@ -38,17 +38,17 @@ CommProxy::~CommProxy()
 void CommProxy::SetDestAddress(String addr)
 {
 	if (m_DestPort != 0) {
-		GetLog()->Warn("Set Dest Address Again!%s", addr);
+		GetLog()->Warn("MSG_CONNECT Set Dest Address Again!%s", addr);
 		return;
 	}
 
-	GetLog()->Info("Set Dest Address!%s", addr);
+	GetLog()->Info("MSG_CONNECT Set Dest Address!%s", addr);
 
     auto_ptr<TStringList> splitStr(new TStringList);
     SplitStr(addr, "|", splitStr.get());
     if (splitStr->Count != 4)
 	{
-		GetLog()->Error("Dest Address Split error, addr = %s", addr);
+		GetLog()->Error("MSG_CONNECT Dest Address Split error, addr = %s", addr);
 		return;
 	}
 	
@@ -56,10 +56,76 @@ void CommProxy::SetDestAddress(String addr)
 	m_DestPort = splitStr->Strings[2].ToIntDef(0);
 }
 
-bool CommProxy::StartListenPort(int listenPort)
+bool CommProxy::StartUDPPort(int listenPort)
 {
 	m_ListenPort = listenPort;
 
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(2,0),&wsaData);
+
+	m_UDPSocket = socket(AF_INET, SOCK_DGRAM, 0);//创建了可识别套接字
+	//需要绑定的参数
+	SOCKADDR_IN addr;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);//ip地址
+	addr.sin_port = htons(m_ListenPort);//绑定端口
+	if (bind(m_UDPSocket, (SOCKADDR*)&addr, sizeof(SOCKADDR)) == SOCKET_ERROR)
+	{
+		GetLog()->Error("Bind Port Failed:%d. %s", m_ListenPort, SysErrorMessage(WSAGetLastError()));
+		return false;
+	}
+
+	GetThreadManager()->ManagerCreateThread("RecvUDPThread", RecvUDPThread, false);
+	return true;
+}
+
+int CommProxy::RecvUDPThread(SingleThread *self)
+{
+	SOCKADDR_IN clientSocket;
+	int len = sizeof(SOCKADDR);
+	char recvBuf[MAX_BUF_SIZE] = {'\0'};
+	int recvLen = 0;
+
+	recvLen = recvfrom(m_UDPSocket, recvBuf, sizeof(recvBuf), 0, (SOCKADDR*)&clientSocket,&len);
+	if (recvLen <= 0)
+	{
+		GetLog()->Warn("Recv UDP Thread socket error. msg = %s", SysErrorMessage(GetLastError()));
+
+		// TODO: Close();
+		return -1;
+	}
+
+	GetLog()->Info("Recv UDP Thread. recv %d", recvLen);
+
+	if (m_DestPort != 0) {
+		GetLog()->Warn("Set Dest Address Again!");
+		return -1;
+	}
+
+	String addr(recvBuf, recvLen);
+	GetLog()->Info("Set Dest Address!%s", addr);
+
+	auto_ptr<TStringList> splitStr(new TStringList);
+	SplitStr(addr, "|", splitStr.get());
+	if (splitStr->Count != 2)
+	{
+		GetLog()->Error("Dest Address Split error, addr = %s", addr);
+		return -1;
+	}
+
+	m_DestIP = splitStr->Strings[0];
+	m_DestPort = splitStr->Strings[1].ToIntDef(0);
+
+	if (!StartListenPort(m_ListenPort + 1))
+	{
+        return -1;
+	}
+	
+	return 0;
+}
+
+bool CommProxy::StartListenPort(int listenPort)
+{
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2,0),&wsaData);
 
@@ -68,7 +134,7 @@ bool CommProxy::StartListenPort(int listenPort)
     SOCKADDR_IN addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);//ip地址
-	addr.sin_port = htons(m_ListenPort);//绑定端口
+	addr.sin_port = htons(listenPort);//绑定端口
 	if (bind(m_ListenSocket, (SOCKADDR*)&addr, sizeof(SOCKADDR)) == SOCKET_ERROR)
 	{
 		GetLog()->Error("Bind Port Failed:%d. %s", listenPort, SysErrorMessage(WSAGetLastError()));
@@ -90,7 +156,6 @@ int CommProxy::ListenThread(SingleThread *self)
 	SOCKADDR_IN clientAddr;
 	int len = sizeof(SOCKADDR);
 
-	GetLog()->Info("Listen Port : %d", m_ListenPort);
 	m_ClientSocket = accept(m_ListenSocket, (SOCKADDR*)&clientAddr, &len);
 	if (m_ClientSocket == (SOCKET)SOCKET_ERROR)
 	{
@@ -197,6 +262,10 @@ bool CommProxy::SendBuf_O(SOCKET s, char *buf, int len)
 
 void CommProxy::Close()
 {
+	if (m_UDPSocket)
+	{
+		closesocket(m_UDPSocket);
+	}
 	if (m_ListenSocket)
 	{
 		closesocket(m_ListenSocket);

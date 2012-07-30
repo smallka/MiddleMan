@@ -4,6 +4,6 @@
     <Transaction>2012/07/24 10:04:01.685.groupproj,E:\hook\eggxp\eggxp.groupproj=E:\hook\eggxp\middleman.groupproj</Transaction>
   </Transactions>
 	<Default.Personality>
-		<Projects ActiveProject="MiddleManProj.exe"/>
+		<Projects ActiveProject="wowgo.dll"/>
 	</Default.Personality>
 </BorlandProject>

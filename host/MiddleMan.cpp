@@ -74,10 +74,10 @@ void __fastcall TMiddleManFrm::FormCreate(TObject *Sender)
 	GetDllInjecter()->InjectDll(dllName, userDefineClassName);
 
 	int listenPort = m_MemIniFile->ReadString("SET", "ViewerPort", "").ToIntDef(0);
-	if (!GetCommProxy()->StartListenPort(listenPort))
+	if (!GetCommProxy()->StartUDPPort(listenPort))
 	{
         return;
-    }
+	}
 
 	GetThreadManager()->StartAll();
 	// TODO: GetThreadManager()->FreeAll(); on FormDestroy
