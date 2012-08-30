@@ -34,6 +34,7 @@ void __fastcall TMiddleManFrm::WndProc(TMessage &Msg)
 
 		if(sendData->dwData == MSG_CONNECT)
 		{
+			GetLog()->Info("MSG_CONNECT Set Dest Address: %s", msg);
 			GetCommProxy()->SetDestAddress(msg);
 		}
 	}
@@ -73,15 +74,33 @@ void __fastcall TMiddleManFrm::FormCreate(TObject *Sender)
 	String userDefineClassName = m_MemIniFile->ReadString("SET", "UserDefineClassName", "");
 	GetDllInjecter()->InjectDll(dllName, userDefineClassName);
 
-	int listenPort = m_MemIniFile->ReadString("SET", "ViewerPort", "").ToIntDef(0);
-	if (!GetCommProxy()->StartUDPPort(listenPort))
+	String remoteIP = m_MemIniFile->ReadString("SET", "RemoteIP", "");
+	int redirectPort = m_MemIniFile->ReadString("SET", "RedirectPort", "").ToIntDef(0);
+
+	if (remoteIP == "")
 	{
-        return;
+		int listenPort = m_MemIniFile->ReadString("SET", "ViewerPort", "").ToIntDef(0);
+		if (listenPort != 0)
+		{
+			if (!GetCommProxy()->StartListenPort(listenPort, redirectPort))
+			{
+				ShowMessage("fail to start listen port!");
+				return;
+			}
+		}
+		else
+		{
+			if (!GetCommProxy()->StartRedirectPort(redirectPort))
+			{
+				ShowMessage("fail to start redirect port!");
+				return;
+			}
+		}
+
+		GetThreadManager()->StartAll();
 	}
 
-	GetThreadManager()->StartAll();
 	// TODO: GetThreadManager()->FreeAll(); on FormDestroy
-
 }
 //---------------------------------------------------------------------------
 
@@ -96,4 +115,5 @@ void __fastcall TMiddleManFrm::FormDestroy(TObject *Sender)
 	  GetThreadManager()->FreeAll();
 }
 //---------------------------------------------------------------------------
+
 

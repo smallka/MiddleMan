@@ -37,28 +37,22 @@ CommProxy::~CommProxy()
 
 void CommProxy::SetDestAddress(String addr)
 {
-	if (m_DestPort != 0) {
-		GetLog()->Warn("MSG_CONNECT Set Dest Address Again!%s", addr);
-		return;
-	}
-
-	GetLog()->Info("MSG_CONNECT Set Dest Address!%s", addr);
-
     auto_ptr<TStringList> splitStr(new TStringList);
     SplitStr(addr, "|", splitStr.get());
-    if (splitStr->Count != 4)
+    if (splitStr->Count != 2)
 	{
-		GetLog()->Error("MSG_CONNECT Dest Address Split error, addr = %s", addr);
+		GetLog()->Error("Dest Address Split error");
 		return;
 	}
 	
-	m_DestIP = splitStr->Strings[1];
-	m_DestPort = splitStr->Strings[2].ToIntDef(0);
+	m_DestIP = splitStr->Strings[0];
+	m_DestPort = splitStr->Strings[1].ToIntDef(0);
 }
 
-bool CommProxy::StartUDPPort(int listenPort)
+bool CommProxy::StartListenPort(int listenPort, int redirectPort)
 {
 	m_ListenPort = listenPort;
+	m_RedirectPort = redirectPort;
 
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,0),&wsaData);
@@ -97,26 +91,11 @@ int CommProxy::RecvUDPThread(SingleThread *self)
 
 	GetLog()->Info("Recv UDP Thread. recv %d", recvLen);
 
-	if (m_DestPort != 0) {
-		GetLog()->Warn("Set Dest Address Again!");
-		return -1;
-	}
-
 	String addr(recvBuf, recvLen);
-	GetLog()->Info("Set Dest Address!%s", addr);
+	GetLog()->Info("UDP Set Dest Address: %s", addr);
+	SetDestAddress(addr);
 
-	auto_ptr<TStringList> splitStr(new TStringList);
-	SplitStr(addr, "|", splitStr.get());
-	if (splitStr->Count != 2)
-	{
-		GetLog()->Error("Dest Address Split error, addr = %s", addr);
-		return -1;
-	}
-
-	m_DestIP = splitStr->Strings[0];
-	m_DestPort = splitStr->Strings[1].ToIntDef(0);
-
-	if (!StartListenPort(m_ListenPort + 1))
+	if (!StartRedirectPort(m_RedirectPort))
 	{
         return -1;
 	}
@@ -124,7 +103,7 @@ int CommProxy::RecvUDPThread(SingleThread *self)
 	return 0;
 }
 
-bool CommProxy::StartListenPort(int listenPort)
+bool CommProxy::StartRedirectPort(int redirectPort)
 {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2,0),&wsaData);
@@ -134,16 +113,16 @@ bool CommProxy::StartListenPort(int listenPort)
     SOCKADDR_IN addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);//ip地址
-	addr.sin_port = htons(listenPort);//绑定端口
+	addr.sin_port = htons(redirectPort);//绑定端口
 	if (bind(m_ListenSocket, (SOCKADDR*)&addr, sizeof(SOCKADDR)) == SOCKET_ERROR)
 	{
-		GetLog()->Error("Bind Port Failed:%d. %s", listenPort, SysErrorMessage(WSAGetLastError()));
+		GetLog()->Error("Bind Port Failed:%d. %s", redirectPort, SysErrorMessage(WSAGetLastError()));
 		return false;
 	}
 	// TODO: listen count
 	if (listen(m_ListenSocket, 100) == SOCKET_ERROR)
 	{
-		GetLog()->Error("List Port Failed:%d. %s", listenPort, SysErrorMessage(WSAGetLastError()));
+		GetLog()->Error("List Port Failed:%d. %s", redirectPort, SysErrorMessage(WSAGetLastError()));
 		return false;
 	}
 

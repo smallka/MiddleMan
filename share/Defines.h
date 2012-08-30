@@ -8,8 +8,4 @@
 #define MSG_CONNECT      WM_USER+0x1129
 #define MSG_HINT         WM_USER+0x1131
 
-// TODO: config.ini
-#define HOST_IP "127.0.0.1"
-//#define HOST_IP "192.168.36.80"
-
 #endif

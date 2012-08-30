@@ -19,6 +19,8 @@ static HINSTANCE gHInstDLL = 0;
 static String gViewerDefineClassName;
 static HANDLE gViewerWindowHandle = 0;
 static int gViewerPort = 0;
+static int gRedirectPort = 0;
+static String gViewerIP;
 
 void SendMsg(int par, String msg)
 {
@@ -128,23 +130,29 @@ WINSOCK_API_LINKAGE int WSAAPI ConnectHook(
 
 	if (port != 80 && ip != "127.0.0.1")
 	{
-		//SendConnect("tcp|%s|%d|%d", ip, port);
-		AnsiString ansiIP = HOST_IP;
+		AnsiString ansiIP = gViewerIP;
 
-		SOCKET sockUDP = socket(AF_INET, SOCK_DGRAM, 0);
-		SOCKADDR_IN addrUDP;
-		addrUDP.sin_family = AF_INET;
-		addrUDP.sin_addr.S_un.S_addr = inet_addr(ansiIP.c_str());
-		addrUDP.sin_port = htons(gViewerPort);
-		AnsiString addr = ip + "|" + String(port);
-		sendto(sockUDP, addr.c_str(), addr.Length(), 0, (SOCKADDR*)&addrUDP, sizeof(SOCKADDR));
-		closesocket(sockUDP);
+		if (gViewerPort == 0)
+		{
+			SendConnect("%s|%d", ip, port);
+		}
+		else
+		{
+            SOCKET sockUDP = socket(AF_INET, SOCK_DGRAM, 0);
+			SOCKADDR_IN addrUDP;
+			addrUDP.sin_family = AF_INET;
+			addrUDP.sin_addr.S_un.S_addr = inet_addr(ansiIP.c_str());
+			addrUDP.sin_port = htons(gViewerPort);
+			AnsiString addr = ip + "|" + String(port);
+			sendto(sockUDP, addr.c_str(), addr.Length(), 0, (SOCKADDR*)&addrUDP, sizeof(SOCKADDR));
+			closesocket(sockUDP);
+		}
 
 		sockaddr_in * redirect_addr = (sockaddr_in *)name;
-		redirect_addr->sin_port = htons(gViewerPort + 1);
+		redirect_addr->sin_port = htons(gRedirectPort);
 		redirect_addr->sin_addr.s_addr=inet_addr(ansiIP.c_str());
 
-		SendHint("redirect to %s", HOST_IP);
+		SendHint("redirect to %s", gViewerIP);
 	}
 
 	nReturn = connect(sock, name, namelen);
@@ -230,7 +238,7 @@ bool FindViewerWindow()
 /**
 	读取配置，找出MiddleMan进程
 **/
-bool InitDLL(HINSTANCE hinstDLL)
+bool LoadConfig(HINSTANCE hinstDLL)
 {
 	gHInstDLL = hinstDLL;
 
@@ -246,10 +254,24 @@ bool InitDLL(HINSTANCE hinstDLL)
 
 	TMemIniFile *config = new TMemIniFile(path);
 	gViewerDefineClassName = config->ReadString("SET", "ViewerDefineClassName", "");
+	gRedirectPort = config->ReadString("SET", "RedirectPort", "").ToIntDef(0);
 	gViewerPort = config->ReadString("SET", "ViewerPort", "").ToIntDef(0);
+	gViewerIP = config->ReadString("SET", "RemoteIP", "");
+
+	if (gViewerIP != "")
+	{
+		if (gViewerPort == 0)
+		{
+			GetLog()->Error("remote ip must specify port");
+			return false;
+		}
+	}
+	else
+	{
+		gViewerIP = "127.0.0.1";
+	}
 
 	GetLog()->Info("config loaded: %s", path);
-
 	return true;
 }
 
@@ -262,7 +284,7 @@ int __stdcall DllMain(HINSTANCE hinstDLL, DWORD fwdreason, LPVOID lpvReserved)
     {
         case DLL_PROCESS_ATTACH:
         {
-			if (!InitDLL(hinstDLL))
+			if (!LoadConfig(hinstDLL))
 			{
 				return 0;
 			}
