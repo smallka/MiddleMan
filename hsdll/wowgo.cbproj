@@ -175,6 +175,15 @@
 			<ProjectFileVersion>12</ProjectFileVersion>
 		</ProjectExtensions>
 		<ItemGroup>
+			<None Include="..\share\Defines.h">
+				<BuildOrder>1</BuildOrder>
+			</None>
+			<None Include="..\share\SingletonEx.h">
+				<BuildOrder>4</BuildOrder>
+			</None>
+			<CppCompile Include="hsdll.cpp">
+				<BuildOrder>0</BuildOrder>
+			</CppCompile>
 			<CppCompile Include="..\share\Log4Me.cpp">
 				<DependentOn>..\share\Log4Me.h</DependentOn>
 				<BuildOrder>2</BuildOrder>
@@ -183,15 +192,6 @@
 				<DependentOn>..\share\StrUtil.h</DependentOn>
 				<BuildOrder>3</BuildOrder>
 			</CppCompile>
-			<CppCompile Include="hsdll.cpp">
-				<BuildOrder>0</BuildOrder>
-			</CppCompile>
-			<None Include="..\share\Defines.h">
-				<BuildOrder>1</BuildOrder>
-			</None>
-			<None Include="..\share\SingletonEx.h">
-				<BuildOrder>4</BuildOrder>
-			</None>
 			<BuildConfiguration Include="Base">
 				<Key>Base</Key>
 			</BuildConfiguration>

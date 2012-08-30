@@ -10,5 +10,6 @@
 
 // TODO: config.ini
 #define HOST_IP "127.0.0.1"
+//#define HOST_IP "192.168.36.80"
 
 #endif
